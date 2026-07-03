@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace UnityPlugin.UGUIExt
 {
-    public class PanelFlowLayoutGroup : LayoutGroup
+    public class FlowLayoutGroup : LayoutGroup
     {
         [SerializeField] protected Vector2 m_Spacing = Vector2.zero;
         public Vector2 spacing { get { return m_Spacing; } set { SetProperty(ref m_Spacing, value); } }
@@ -28,7 +28,7 @@ namespace UnityPlugin.UGUIExt
         List<float> m_LineWidths = new();
         List<float> m_LineHeights = new();
 
-        protected PanelFlowLayoutGroup()
+        protected FlowLayoutGroup()
         { }
 
         /// <summary>

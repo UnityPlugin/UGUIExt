@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace UnityPlugin.UGUIExt.UGUI
 {
-    [CustomEditor(typeof(PanelFlowLayoutGroup))]
-    public class PanelFlowLayoutGroupEditor : Editor
+    [CustomEditor(typeof(FlowLayoutGroup))]
+    public class FlowLayoutGroupEditor : Editor
     {
         SerializedProperty _paddingPropery;
         SerializedProperty _spacingPropery;

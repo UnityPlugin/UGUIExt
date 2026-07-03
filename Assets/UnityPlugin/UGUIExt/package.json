@@ -1,0 +1,13 @@
+{
+  "name": "com.zerowq.unityplugin.uguiext",
+  "displayName": "UGUI Ext",
+  "unity": "2022.3",
+  "version": "1.0.0",
+  "description": "Ext for UGUI\n\nRequires:\ngit@github.com:UnityPlugin/IMGUIUtils.git?path=/Assets/UnityPlugin/IMGUIUtils\n",
+  "author": {
+    "name": "zeroWq"
+  },
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  }
+}

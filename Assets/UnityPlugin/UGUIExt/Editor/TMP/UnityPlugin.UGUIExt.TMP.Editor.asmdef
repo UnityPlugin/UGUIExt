@@ -1,0 +1,17 @@
+{
+    "name": "UnityPlugin.UGUIExt.TMP.Editor",
+    "rootNamespace": "UnityPlugin",
+    "references": [
+        "UnityPlugin.IMGUIUtils.Editor",
+        "UnityPlugin.UGUIExt.TMP.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

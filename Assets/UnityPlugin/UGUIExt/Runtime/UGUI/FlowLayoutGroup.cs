@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace UnityPlugin.UGUIExt
@@ -75,6 +76,7 @@ namespace UnityPlugin.UGUIExt
             var useScale = m_ChildScaleWidth;
             var spacing = m_Spacing[0];
 
+            var totalMin = 0f;
             var linePreferred = (float)combinedPadding;
             var totalPreferred = linePreferred;
             var lineCount = 0;
@@ -91,7 +93,7 @@ namespace UnityPlugin.UGUIExt
                 GetChildSizes(child, 0, controlSize, out var preferred);
                 if (useScale) preferred *= child.localScale[0];
 
-                if (lineCount > 0 && linePreferred + preferred > rectWidth)
+                if (lineCount > 0 && (linePreferred + preferred > rectWidth || IsFlowBreak(child)))
                 {
                     totalPreferred = Mathf.Max(totalPreferred, linePreferred);
 
@@ -102,8 +104,12 @@ namespace UnityPlugin.UGUIExt
                     lineCount = 0;
                 }
 
+                if (controlSize && preferred > rectWidth) preferred = rectWidth;
+                if (preferred > totalMin && preferred < rectWidth) totalMin = preferred;
+
                 linePreferred += preferred + spacing;
                 lineCount++;
+
             }
 
             if (lineCount > 0)
@@ -119,7 +125,7 @@ namespace UnityPlugin.UGUIExt
                 totalPreferred -= spacing;
             }
 
-            SetLayoutInputForAxis(totalPreferred, totalPreferred, -1, 0);
+            SetLayoutInputForAxis(totalMin, totalPreferred, -1, 0);
         }
 
         protected void CalcFlowV()
@@ -197,6 +203,7 @@ namespace UnityPlugin.UGUIExt
 
             if (m_RightToLeft) pos += m_LineWidths[0];
 
+            var rectWidth = rectTransform.rect.width - padding.horizontal;
             var rectChildrenCount = rectChildren.Count;
 
             var lineIndex = 0;
@@ -206,13 +213,20 @@ namespace UnityPlugin.UGUIExt
                 var child = rectChildren[i];
                 GetChildSizes(child, 0, controlSize, out var preferred);
                 var scaleFactor = 1f;
+                var scaledPreferred = preferred;
                 if (useScale)
                 {
                     scaleFactor = child.localScale[0];
-                    preferred *= scaleFactor;
+                    scaledPreferred *= scaleFactor;
                 }
 
-                if (m_RightToLeft) pos -= preferred;
+                if (scaledPreferred > rectWidth)
+                {
+                    scaledPreferred = rectWidth;
+                    preferred = scaledPreferred / scaleFactor;
+                }
+
+                if (m_RightToLeft) pos -= scaledPreferred;
                 if (controlSize)
                 {
                     SetChildAlongAxisWithScale(child, 0, pos, preferred, scaleFactor);
@@ -223,7 +237,7 @@ namespace UnityPlugin.UGUIExt
                 }
 
                 if (m_RightToLeft) pos -= spacing;
-                else pos += preferred + spacing;
+                else pos += scaledPreferred + spacing;
 
                 if (lineIndex < m_LineBreaks.Count && i + 1 >= m_LineBreaks[lineIndex])
                 {
@@ -286,11 +300,11 @@ namespace UnityPlugin.UGUIExt
 
                 if (controlSize)
                 {
-                    SetChildAlongAxisWithScale(child, 1, pos, preferred, scaleFactor);
+                    SetChildAlongAxisWithScale(child, 1, pos + childOffset, preferred, scaleFactor);
                 }
                 else
                 {
-                    SetChildAlongAxisWithScale(child, 1, pos, scaleFactor);
+                    SetChildAlongAxisWithScale(child, 1, pos + childOffset, scaleFactor);
                 }
 
                 if (lineIndex < m_LineBreaks.Count && i + 1 >= m_LineBreaks[lineIndex])
@@ -311,6 +325,27 @@ namespace UnityPlugin.UGUIExt
             {
                 preferred = LayoutUtility.GetPreferredSize(child, axis);
             }
+        }
+
+        protected bool IsFlowBreak(RectTransform child)
+        {
+            var components = ListPool<Component>.Get();
+            child.GetComponents(typeof(LayoutElementExt), components);
+
+            var count = components.Count;
+            var result = false;
+            for (var i = 0; i < count; i++)
+            {
+                var layoutElement = components[i] as LayoutElementExt;
+                if (layoutElement.breakFlow)
+                {
+                    result = true;
+                    break;
+                }
+            }
+
+            ListPool<Component>.Release(components);
+            return result;
         }
     }
 }

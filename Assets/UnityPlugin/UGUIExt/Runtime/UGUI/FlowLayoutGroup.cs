@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace UnityPlugin.UGUIExt
 {
+    using Bridge;
+
     public class FlowLayoutGroup : LayoutGroup
     {
         [SerializeField] protected Vector2 m_Spacing = Vector2.zero;
@@ -25,9 +26,9 @@ namespace UnityPlugin.UGUIExt
         [SerializeField] protected bool m_RightToLeft = false;
         public bool rightToLeft { get { return m_RightToLeft; } set { SetProperty(ref m_RightToLeft, value); } }
 
-        List<int> m_LineBreaks = new();
-        List<float> m_LineWidths = new();
-        List<float> m_LineHeights = new();
+        List<int> m_LineBreaks = new List<int>();
+        List<float> m_LineWidths = new List<float>();
+        List<float> m_LineHeights = new List<float>();
 
         protected FlowLayoutGroup()
         { }
@@ -194,12 +195,21 @@ namespace UnityPlugin.UGUIExt
             var spacing = m_Spacing[0];
 
             var alignmentOnAxis = GetAlignmentOnAxis(0);
-            var pos = alignmentOnAxis switch
+            var pos = 0f;
+            switch (alignmentOnAxis)
             {
-                0 => padding.left,
-                1 => rectTransform.rect.width - m_LineWidths[0] - padding.right,
-                _ => (rectTransform.rect.width - m_LineWidths[0] - padding.horizontal) * 0.5f + padding.left,
-            };
+                case 0:
+                    pos = padding.left;
+                    break;
+
+                case 1:
+                    pos = rectTransform.rect.width - m_LineWidths[0] - padding.right;
+                    break;
+
+                default:
+                    pos = (rectTransform.rect.width - m_LineWidths[0] - padding.horizontal) * 0.5f + padding.left;
+                    break;
+            }
 
             if (m_RightToLeft) pos += m_LineWidths[0];
 
@@ -245,12 +255,20 @@ namespace UnityPlugin.UGUIExt
 
                     if (lineIndex < m_LineWidths.Count)
                     {
-                        pos = alignmentOnAxis switch
+                        switch (alignmentOnAxis)
                         {
-                            0 => padding.left,
-                            1 => rectTransform.rect.width - m_LineWidths[lineIndex] - padding.right,
-                            _ => (rectTransform.rect.width - m_LineWidths[lineIndex] - padding.horizontal) * 0.5f + padding.left,
-                        };
+                            case 0:
+                                pos = padding.left;
+                                break;
+
+                            case 1:
+                                pos = rectTransform.rect.width - m_LineWidths[lineIndex] - padding.right;
+                                break;
+
+                            default:
+                                pos = (rectTransform.rect.width - m_LineWidths[lineIndex] - padding.horizontal) * 0.5f + padding.left;
+                                break;
+                        }
 
                         if (m_RightToLeft) pos += m_LineWidths[lineIndex];
                     }
@@ -290,12 +308,18 @@ namespace UnityPlugin.UGUIExt
                 var childOffset = 0f;
                 if (lineIndex < m_LineWidths.Count)
                 {
-                    childOffset = alignmentOnAxis switch
+                    switch (alignmentOnAxis)
                     {
-                        0 => 0,
-                        1 => m_LineHeights[lineIndex] - preferred,
-                        _ => (m_LineHeights[lineIndex] - preferred) * 0.5f,
-                    };
+                        case 0:
+                            childOffset = 0;
+                            break;
+                        case 1:
+                            childOffset = m_LineHeights[lineIndex] - preferred;
+                            break;
+                        default:
+                            childOffset = (m_LineHeights[lineIndex] - preferred) * 0.5f;
+                            break;
+                    }
                 }
 
                 if (controlSize)
@@ -329,7 +353,7 @@ namespace UnityPlugin.UGUIExt
 
         protected bool IsFlowBreak(RectTransform child)
         {
-            var components = ListPool<Component>.Get();
+            var components = UnityListPool<Component>.Get();
             child.GetComponents(typeof(LayoutElementExt), components);
 
             var count = components.Count;
@@ -344,7 +368,7 @@ namespace UnityPlugin.UGUIExt
                 }
             }
 
-            ListPool<Component>.Release(components);
+            UnityListPool<Component>.Release(components);
             return result;
         }
     }

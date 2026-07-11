@@ -23,7 +23,14 @@ namespace UnityPlugin.UGUIExt
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(fontMaterial, outlineColor, underlayColor);
+                unchecked
+                {
+                    var hash = 17;
+                    hash = hash * 31 + fontMaterial?.GetHashCode() ?? 0;
+                    hash = hash * 31 + outlineColor.GetHashCode();
+                    hash = hash * 31 + underlayColor.GetHashCode();
+                    return hash;
+                }
             }
 
             public override bool Equals(object obj)
@@ -68,8 +75,8 @@ namespace UnityPlugin.UGUIExt
 
         public void UpdateMaterial()
         {
-            if (_materialDict == null) _materialDict = new();
-            if (_materialRefDict == null) _materialRefDict = new();
+            if (_materialDict == null) _materialDict = new Dictionary<FontMaterialKey, Material>();
+            if (_materialRefDict == null) _materialRefDict = new Dictionary<Material, int>();
 
             if (target == null || target.gameObject != gameObject)
             {

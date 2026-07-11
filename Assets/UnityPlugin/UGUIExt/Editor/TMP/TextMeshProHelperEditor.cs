@@ -51,7 +51,11 @@ namespace UnityPlugin.UGUIExt
                     }
                 }
 
+#if UNITY_2022_3_OR_NEWER
                 if (baseMaterialProperty.boxedValue == null)
+#else
+                if (baseMaterialProperty.objectReferenceValue == null)
+#endif
                 {
                     var text = IMGUIUtils.GetGUIContent("Base Material is null, change Material Preset or select in Project");
                     if (text.image == null)

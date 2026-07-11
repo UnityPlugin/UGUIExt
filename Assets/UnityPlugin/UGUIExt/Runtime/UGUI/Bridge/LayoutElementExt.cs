@@ -1,9 +1,10 @@
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace UnityPlugin.UGUIExt
 {
+    using Bridge;
+
     public class LayoutElementExt : LayoutElement
     {
         [SerializeField] private bool m_BreakFlow = false;
@@ -61,7 +62,7 @@ namespace UnityPlugin.UGUIExt
             var frameCount = Time.frameCount;
             if (m_FrameCount == frameCount) return;
 
-            var components = ListPool<Component>.Get();
+            var components = UnityListPool<Component>.Get();
             GetComponents(typeof(ILayoutElement), components);
 
             var widthPriorty = int.MinValue;
@@ -87,7 +88,7 @@ namespace UnityPlugin.UGUIExt
             if (m_CachePreferredWidth < 0) m_CachePreferredWidth = rect.width;
             if (m_CachePreferredHeight < 0) m_CachePreferredHeight = rect.height;
 
-            ListPool<Component>.Release(components);
+            UnityListPool<Component>.Release(components);
 
             m_FrameCount = frameCount;
         }

@@ -1,3 +1,4 @@
+#if UGUIEXT_TMP || UGUIEXT_UGUI_2
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -174,3 +175,4 @@ namespace UnityPlugin.UGUIExt
 
     }
 }
+#endif

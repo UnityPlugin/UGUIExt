@@ -1,6 +1,6 @@
 {
     "name": "UnityPlugin.UGUIExt.TMP.Editor",
-    "rootNamespace": "UnityPlugin",
+    "rootNamespace": "UnityPlugin.UGUIExt",
     "references": [
         "UnityPlugin.IMGUIUtils.Editor",
         "UnityPlugin.UGUIExt.TMP.Runtime"
@@ -12,6 +12,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "1.0.0",
+            "define": "UGUIEXT_TMP"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "UGUIEXT_UGUI_2"
+        }
+    ],
     "noEngineReferences": false
 }

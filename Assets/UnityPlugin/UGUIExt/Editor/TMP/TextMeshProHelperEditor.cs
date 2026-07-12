@@ -1,3 +1,4 @@
+#if UGUIEXT_TMP || UGUIEXT_UGUI_2
 using UnityEditor;
 using UnityEngine;
 
@@ -103,3 +104,4 @@ namespace UnityPlugin.UGUIExt
         }
     }
 }
+#endif

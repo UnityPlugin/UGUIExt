@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityPlugin.Bridge;
 
 namespace UnityPlugin.UGUIExt
 {
-    using Bridge;
-
     public class FlowLayoutGroup : LayoutGroup
     {
         [SerializeField] protected Vector2 m_Spacing = Vector2.zero;
@@ -27,7 +26,6 @@ namespace UnityPlugin.UGUIExt
         public bool rightToLeft { get { return m_RightToLeft; } set { SetProperty(ref m_RightToLeft, value); } }
 
         List<int> m_LineBreaks = new List<int>();
-        List<float> m_LineWidths = new List<float>();
         List<float> m_LineHeights = new List<float>();
 
         protected FlowLayoutGroup()
@@ -72,21 +70,16 @@ namespace UnityPlugin.UGUIExt
             if (rectChildren.Count == 0)
                 return;
 
-            var combinedPadding = padding.horizontal;
+            var combinedPadding = (float)padding.horizontal;
             var controlSize = m_ChildControlWidth;
             var useScale = m_ChildScaleWidth;
             var spacing = m_Spacing[0];
 
             var totalMin = 0f;
-            var linePreferred = (float)combinedPadding;
+            var linePreferred = combinedPadding;
             var totalPreferred = linePreferred;
-            var lineCount = 0;
 
-            var rectWidth = rectTransform.rect.width - combinedPadding;
             var rectChildrenCount = rectChildren.Count;
-
-            m_LineBreaks.Clear();
-            m_LineWidths.Clear();
 
             for (var i = 0; i < rectChildrenCount; i++)
             {
@@ -94,39 +87,31 @@ namespace UnityPlugin.UGUIExt
                 GetChildSizes(child, 0, controlSize, out var preferred);
                 if (useScale) preferred *= child.localScale[0];
 
-                if (lineCount > 0 && (linePreferred + preferred > rectWidth || IsFlowBreak(child)))
+                IsFlowBreak(child, out var breakPrevious, out var breakNext);
+
+                if (breakPrevious)
                 {
                     totalPreferred = Mathf.Max(totalPreferred, linePreferred);
-
-                    m_LineWidths.Add(linePreferred);
-                    m_LineBreaks.Add(i);
-
                     linePreferred = combinedPadding;
-                    lineCount = 0;
                 }
 
-                if (controlSize && preferred > rectWidth) preferred = rectWidth;
-                if (preferred > totalMin && preferred < rectWidth) totalMin = preferred;
-
+                if (preferred > totalMin) totalMin = preferred;
                 linePreferred += preferred + spacing;
-                lineCount++;
 
+                if (breakNext)
+                {
+                    totalPreferred = Mathf.Max(totalPreferred, linePreferred);
+                    linePreferred = combinedPadding;
+                }
             }
 
-            if (lineCount > 0)
-            {
-                totalPreferred = Mathf.Max(totalPreferred, linePreferred);
-
-                m_LineWidths.Add(linePreferred);
-                m_LineBreaks.Add(rectChildrenCount);
-            }
-
+            totalPreferred = Mathf.Max(totalPreferred, linePreferred);
             if (rectChildren.Count > 0)
             {
                 totalPreferred -= spacing;
             }
 
-            SetLayoutInputForAxis(totalMin, totalPreferred, -1, 0);
+            SetLayoutInputForAxis(totalMin + combinedPadding, totalPreferred, -1, 0);
         }
 
         protected void CalcFlowV()
@@ -139,43 +124,31 @@ namespace UnityPlugin.UGUIExt
             var useScale = m_ChildScaleHeight;
             var spacing = m_Spacing.y;
 
-            var linePreferred = 0f;
             var totalPreferred = (float)combinedPadding;
-            var lineCount = 0;
-
-            var rectChildrenCount = rectChildren.Count;
-            var lineIndex = 0;
 
             m_LineHeights.Clear();
 
-            for (var i = 0; i < rectChildrenCount; i++)
+            var start = 0;
+            for (var i = 0; i < m_LineBreaks.Count; i++)
             {
-                var child = rectChildren[i];
-                GetChildSizes(child, 1, controlSize, out var preferred);
-                if (useScale) preferred *= child.localScale[1];
+                var linePreferred = 0f;
+                var end = m_LineBreaks[i];
 
-                if (lineIndex < m_LineBreaks.Count && i >= m_LineBreaks[lineIndex])
+                for (var j = start; j < end; j++)
                 {
-                    totalPreferred += linePreferred + spacing;
-                    m_LineHeights.Add(linePreferred);
+                    var child = rectChildren[j];
+                    GetChildSizes(child, 1, controlSize, out var preferred);
 
-                    lineIndex++;
+                    var scaleFactor = useScale ? child.localScale[1] : 1;
+                    var scaledPreferred = preferred * scaleFactor;
 
-                    linePreferred = 0f;
-                    lineCount = 0;
+                    if (scaledPreferred > linePreferred) linePreferred = scaledPreferred;
                 }
 
-                if (preferred > linePreferred)
-                {
-                    linePreferred = preferred;
-                }
-                lineCount++;
-            }
-
-            if (lineCount > 0)
-            {
-                totalPreferred += linePreferred + spacing;
                 m_LineHeights.Add(linePreferred);
+                totalPreferred += linePreferred + spacing;
+
+                start = end;
             }
 
             if (rectChildren.Count > 0)
@@ -187,7 +160,7 @@ namespace UnityPlugin.UGUIExt
 
         protected void SetChildrenH()
         {
-            if (rectChildren.Count == 0 || m_LineWidths.Count == 0)
+            if (rectChildren.Count == 0)
                 return;
 
             var controlSize = m_ChildControlWidth;
@@ -195,40 +168,22 @@ namespace UnityPlugin.UGUIExt
             var spacing = m_Spacing[0];
 
             var alignmentOnAxis = GetAlignmentOnAxis(0);
-            var pos = 0f;
-            switch (alignmentOnAxis)
-            {
-                case 0:
-                    pos = padding.left;
-                    break;
-
-                case 1:
-                    pos = rectTransform.rect.width - m_LineWidths[0] - padding.right;
-                    break;
-
-                default:
-                    pos = (rectTransform.rect.width - m_LineWidths[0] - padding.horizontal) * 0.5f + padding.left;
-                    break;
-            }
-
-            if (m_RightToLeft) pos += m_LineWidths[0];
 
             var rectWidth = rectTransform.rect.width - padding.horizontal;
             var rectChildrenCount = rectChildren.Count;
 
-            var lineIndex = 0;
+            var itemWidths = UnityListPool<float>.Get();
+            itemWidths.Clear();
+            var lineWidth = 0f;
+            var lineCount = 0;
+            m_LineBreaks.Clear();
 
             for (int i = 0; i < rectChildrenCount; i++)
             {
                 var child = rectChildren[i];
                 GetChildSizes(child, 0, controlSize, out var preferred);
-                var scaleFactor = 1f;
-                var scaledPreferred = preferred;
-                if (useScale)
-                {
-                    scaleFactor = child.localScale[0];
-                    scaledPreferred *= scaleFactor;
-                }
+                var scaleFactor = useScale ? child.localScale[0] : 1;
+                var scaledPreferred = preferred * scaleFactor;
 
                 if (scaledPreferred > rectWidth)
                 {
@@ -236,49 +191,89 @@ namespace UnityPlugin.UGUIExt
                     preferred = scaledPreferred / scaleFactor;
                 }
 
-                if (m_RightToLeft) pos -= scaledPreferred;
+                IsFlowBreak(child, out var breakPrevious, out var breakNext);
+
+                if (lineCount > 0 && (lineWidth + scaledPreferred > rectWidth || breakPrevious))
+                {
+                    SetLineChildrenH(
+                        lineWidth - spacing, rectWidth,
+                        i - lineCount, itemWidths,
+                        alignmentOnAxis, useScale, controlSize, spacing);
+
+                    m_LineBreaks.Add(i);
+                    itemWidths.Clear();
+                    lineCount = 0;
+                    lineWidth = 0;
+                }
+
+                lineWidth += scaledPreferred + spacing;
+                lineCount++;
+                itemWidths.Add(preferred);
+
+                if (breakNext)
+                {
+                    SetLineChildrenH(
+                        lineWidth - spacing, rectWidth,
+                        i + 1 - lineCount, itemWidths,
+                        alignmentOnAxis, useScale, controlSize, spacing);
+
+                    m_LineBreaks.Add(i + 1);
+                    itemWidths.Clear();
+                    lineCount = 0;
+                    lineWidth = 0;
+                }
+            }
+
+            if (lineCount > 0)
+            {
+                SetLineChildrenH(
+                    lineWidth - spacing, rectWidth,
+                    rectChildrenCount - lineCount, itemWidths,
+                    alignmentOnAxis, useScale, controlSize, spacing);
+
+                m_LineBreaks.Add(rectChildrenCount);
+                itemWidths.Clear();
+            }
+
+            UnityListPool<float>.Release(itemWidths);
+        }
+
+        protected void SetLineChildrenH(float lineWidth, float rectWidth, int startIndex, List<float> itemWidths, float alignmentOnAxis, bool useScale, bool controlSize, float spacing)
+        {
+            var pos = (float)padding.left;
+            if (alignmentOnAxis >= 1) pos += rectWidth - lineWidth;
+            else if (alignmentOnAxis > 0) pos += (rectWidth - lineWidth) * 0.5f;
+
+            var start = startIndex;
+            var end = startIndex + itemWidths.Count;
+            var offset = 1;
+            if (m_RightToLeft)
+            {
+                start = startIndex + itemWidths.Count - 1;
+                end = startIndex - 1;
+                offset = -1;
+            }
+
+            for (var j = start; j != end; j += offset)
+            {
+                var child = rectChildren[j];
+                var scaleFactor = useScale ? child.localScale[0] : 1;
+                var itemWidth = itemWidths[j - startIndex];
                 if (controlSize)
                 {
-                    SetChildAlongAxisWithScale(child, 0, pos, preferred, scaleFactor);
+                    SetChildAlongAxisWithScale(child, 0, pos, itemWidth, scaleFactor);
                 }
                 else
                 {
                     SetChildAlongAxisWithScale(child, 0, pos, scaleFactor);
                 }
-
-                if (m_RightToLeft) pos -= spacing;
-                else pos += scaledPreferred + spacing;
-
-                if (lineIndex < m_LineBreaks.Count && i + 1 >= m_LineBreaks[lineIndex])
-                {
-                    lineIndex++;
-
-                    if (lineIndex < m_LineWidths.Count)
-                    {
-                        switch (alignmentOnAxis)
-                        {
-                            case 0:
-                                pos = padding.left;
-                                break;
-
-                            case 1:
-                                pos = rectTransform.rect.width - m_LineWidths[lineIndex] - padding.right;
-                                break;
-
-                            default:
-                                pos = (rectTransform.rect.width - m_LineWidths[lineIndex] - padding.horizontal) * 0.5f + padding.left;
-                                break;
-                        }
-
-                        if (m_RightToLeft) pos += m_LineWidths[lineIndex];
-                    }
-                }
+                pos += itemWidth + spacing;
             }
         }
 
         protected void SetChildrenV()
         {
-            if (rectChildren.Count == 0 || m_LineHeights.Count == 0)
+            if (rectChildren.Count == 0)
                 return;
 
             var controlSize = m_ChildControlHeight;
@@ -289,54 +284,37 @@ namespace UnityPlugin.UGUIExt
 
             var alignmentOnAxis = GetAlignmentOnAxis(1);
 
-            var rectChildrenCount = rectChildren.Count;
-
-            var lineIndex = 0;
-
-            for (int i = 0; i < rectChildrenCount; i++)
+            var start = 0;
+            for (var i = 0; i < m_LineBreaks.Count; i++)
             {
-                var child = rectChildren[i];
-                GetChildSizes(child, 1, controlSize, out var preferred);
-
-                var scaleFactor = 1f;
-                if (useScale)
+                var end = m_LineBreaks[i];
+                var lineHeight = m_LineHeights[i];
+                for (var j = start; j < end; j++)
                 {
-                    scaleFactor = child.localScale[1];
-                    preferred *= scaleFactor;
-                }
+                    var child = rectChildren[j];
+                    GetChildSizes(child, 1, controlSize, out var preferred);
 
-                var childOffset = 0f;
-                if (lineIndex < m_LineWidths.Count)
-                {
-                    switch (alignmentOnAxis)
+                    var scaleFactor = useScale ? child.localScale[1] : 1;
+                    var scaledPreferred = preferred * scaleFactor;
+
+                    var childOffset = 0f;
+                    if (alignmentOnAxis >= 1) childOffset = lineHeight - scaledPreferred;
+                    else if (alignmentOnAxis > 0) childOffset = (lineHeight - scaledPreferred) * 0.5f;
+
+                    if (controlSize)
                     {
-                        case 0:
-                            childOffset = 0;
-                            break;
-                        case 1:
-                            childOffset = m_LineHeights[lineIndex] - preferred;
-                            break;
-                        default:
-                            childOffset = (m_LineHeights[lineIndex] - preferred) * 0.5f;
-                            break;
+                        SetChildAlongAxisWithScale(child, 1, pos + childOffset, preferred, scaleFactor);
+                    }
+                    else
+                    {
+                        SetChildAlongAxisWithScale(child, 1, pos + childOffset, scaleFactor);
                     }
                 }
 
-                if (controlSize)
-                {
-                    SetChildAlongAxisWithScale(child, 1, pos + childOffset, preferred, scaleFactor);
-                }
-                else
-                {
-                    SetChildAlongAxisWithScale(child, 1, pos + childOffset, scaleFactor);
-                }
-
-                if (lineIndex < m_LineBreaks.Count && i + 1 >= m_LineBreaks[lineIndex])
-                {
-                    pos += m_LineHeights[lineIndex] + spacing;
-                    lineIndex++;
-                }
+                pos += lineHeight + spacing;
+                start = end;
             }
+
         }
 
         protected void GetChildSizes(RectTransform child, int axis, bool controlSize, out float preferred)
@@ -351,25 +329,29 @@ namespace UnityPlugin.UGUIExt
             }
         }
 
-        protected bool IsFlowBreak(RectTransform child)
+        protected void IsFlowBreak(RectTransform child, out bool previous, out bool next)
         {
             var components = UnityListPool<Component>.Get();
             child.GetComponents(typeof(LayoutElementExt), components);
 
             var count = components.Count;
-            var result = false;
+            previous = false;
+            next = false;
+
             for (var i = 0; i < count; i++)
             {
                 var layoutElement = components[i] as LayoutElementExt;
-                if (layoutElement.breakFlow)
+                if (layoutElement.breakFlowNext)
                 {
-                    result = true;
-                    break;
+                    next = true;
+                }
+                if (layoutElement.breakFlowPrevious)
+                {
+                    previous = true;
                 }
             }
 
             UnityListPool<Component>.Release(components);
-            return result;
         }
     }
 }

@@ -15,7 +15,8 @@ namespace UnityPlugin.UGUIExt
         SerializedProperty m_MaxHeight;
         SerializedProperty m_FlexibleWidth;
         SerializedProperty m_FlexibleHeight;
-        SerializedProperty m_BreakFlow;
+        SerializedProperty m_BreakFlowPrevious;
+        SerializedProperty m_BreakFlowNext;
         SerializedProperty m_LayoutPriority;
 
         RectTransform m_Rect;
@@ -32,7 +33,8 @@ namespace UnityPlugin.UGUIExt
             m_MaxHeight = serializedObject.FindProperty("m_MaxHeight");
             m_FlexibleWidth = serializedObject.FindProperty("m_FlexibleWidth");
             m_FlexibleHeight = serializedObject.FindProperty("m_FlexibleHeight");
-            m_BreakFlow = serializedObject.FindProperty("m_BreakFlow");
+            m_BreakFlowPrevious = serializedObject.FindProperty("m_BreakFlowPrevious");
+            m_BreakFlowNext = serializedObject.FindProperty("m_BreakFlowNext");
             m_LayoutPriority = serializedObject.FindProperty("m_LayoutPriority");
 
             m_Rect = (target as LayoutElementExt).transform as RectTransform;
@@ -59,7 +61,8 @@ namespace UnityPlugin.UGUIExt
                 LayoutElementField(m_FlexibleWidth, 1);
                 LayoutElementField(m_FlexibleHeight, 1);
 
-                EditorGUILayout.PropertyField(m_BreakFlow);
+                EditorGUILayout.PropertyField(m_BreakFlowPrevious);
+                EditorGUILayout.PropertyField(m_BreakFlowNext);
 
                 if (EditorGUI.EndChangeCheck())
                 {

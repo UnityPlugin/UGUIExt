@@ -1,17 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityPlugin.Bridge;
 
 namespace UnityPlugin.UGUIExt
 {
-    using Bridge;
-
     public class LayoutElementExt : LayoutElement
     {
-        [SerializeField] private bool m_BreakFlow = false;
+        [SerializeField] private bool m_BreakFlowPrevious = false;
+        [SerializeField] private bool m_BreakFlowNext = false;
         [SerializeField] private float m_MaxWidth = -1;
         [SerializeField] private float m_MaxHeight = -1;
 
-        public virtual bool breakFlow { get { return m_BreakFlow; } set { if (SetPropertyUtility.SetStruct(ref m_BreakFlow, value)) SetDirty(); } }
+        public virtual bool breakFlowPrevious { get { return m_BreakFlowPrevious; } set { if (SetPropertyUtility.SetStruct(ref m_BreakFlowPrevious, value)) SetDirty(); } }
+        public virtual bool breakFlowNext { get { return m_BreakFlowNext; } set { if (SetPropertyUtility.SetStruct(ref m_BreakFlowNext, value)) SetDirty(); } }
 
         public virtual float maxWidth { get { return m_MaxWidth; } set { if (SetPropertyUtility.SetStruct(ref m_MaxWidth, value)) SetDirty(); } }
         public virtual float maxHeight { get { return m_MaxHeight; } set { if (SetPropertyUtility.SetStruct(ref m_MaxHeight, value)) SetDirty(); } }

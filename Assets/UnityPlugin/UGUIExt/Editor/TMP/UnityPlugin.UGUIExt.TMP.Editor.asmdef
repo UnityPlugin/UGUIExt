@@ -5,7 +5,9 @@
         "UnityPlugin.IMGUIUtils.Editor",
         "UnityPlugin.UGUIExt.TMP.Runtime"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

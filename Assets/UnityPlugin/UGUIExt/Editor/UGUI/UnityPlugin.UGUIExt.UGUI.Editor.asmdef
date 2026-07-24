@@ -3,8 +3,8 @@
     "rootNamespace": "UnityPlugin.UGUIExt",
     "references": [
         "UnityEditor.UI",
-        "UnityPlugin.IMGUIUtils.Editor",
-        "UnityPlugin.UGUIExt.UGUI.Runtime"
+        "UnityPlugin.UGUIExt.UGUI.Runtime",
+        "UnityPlugin.EditorUtils.Editor"
     ],
     "includePlatforms": [
         "Editor"

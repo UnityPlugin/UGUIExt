@@ -2,7 +2,7 @@
     "name": "UnityPlugin.UGUIExt.TMP.Editor",
     "rootNamespace": "UnityPlugin.UGUIExt",
     "references": [
-        "UnityPlugin.IMGUIUtils.Editor",
+        "UnityPlugin.EditorUtils.Editor",
         "UnityPlugin.UGUIExt.TMP.Runtime"
     ],
     "includePlatforms": [

@@ -27,6 +27,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.textmeshpro": {
+      "version": "2.1.6",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ugui": {
       "version": "1.0.0",
       "depth": 0,
@@ -41,14 +50,14 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "1016a741494d84b71bf21742e63bd4ad47e98fd8"
+      "hash": "d325069a25a353642f5747fa74f059bd1cdd666f"
     },
-    "com.zerowq.unityplugin.imguiutils": {
-      "version": "ssh://git@github.com/UnityPlugin/IMGUIUtils.git?path=/Assets/UnityPlugin/IMGUIUtils",
+    "com.zerowq.unityplugin.editorutils": {
+      "version": "ssh://git@github.com/UnityPlugin/EditorUtils.git?path=/Assets/UnityPlugin/EditorUtils",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "8dfbd1642d6b9849a0a980ed69c3dc584b3194fd"
+      "hash": "fe2901e3b75f637c6744fb757de1aa952c3d0c19"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

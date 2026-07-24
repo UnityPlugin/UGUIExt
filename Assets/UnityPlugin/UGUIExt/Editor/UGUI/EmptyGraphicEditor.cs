@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityPlugin.EditorUtils;
 
 namespace UnityPlugin.UGUIExt
 {
@@ -7,7 +8,7 @@ namespace UnityPlugin.UGUIExt
     {
         override public void OnInspectorGUI()
         {
-            IMGUIUtils.DrawPropertiesExcluding(serializedObject,
+            IMGUI.DrawPropertiesExcluding(serializedObject,
                 "m_Material",
                 "m_Color",
                 "m_Maskable",

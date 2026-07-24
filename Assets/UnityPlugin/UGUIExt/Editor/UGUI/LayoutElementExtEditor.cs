@@ -21,7 +21,6 @@ namespace UnityPlugin.UGUIExt
 
         RectTransform m_Rect;
 
-
         protected virtual void OnEnable()
         {
             m_IgnoreLayout = serializedObject.FindProperty("m_IgnoreLayout");

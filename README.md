@@ -5,8 +5,9 @@
 git@github.com:UnityPlugin/UGUIExt.git?path=/Assets/UnityPlugin/UGUIExt  
 
 ### Requires
-git@github.com:UnityPlugin/IMGUIUtils.git?path=/Assets/UnityPlugin/IMGUIUtils  
 git@github.com:UnityPlugin/Bridge.git?path=/Assets/UnityPlugin/Bridge  
+git@github.com:UnityPlugin/EditorUtils.git?path=/Assets/UnityPlugin/EditorUtils  
+
 | Package | Version | Unity Version |
 | - | - | - |
 | com.unity.ugui | 2.0.0 | v >= 6000 |
